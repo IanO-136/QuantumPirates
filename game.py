@@ -74,8 +74,6 @@ quiz_questions = [
      "answer": "The No-Clone Theorem"}
 ]
 
-# TIMEREVENT = pygame.USEREVENT + 1
-# pygame.time.set_timer(TIMEREVENT, 1000) #1s = 1000 ms
 quiz_stat = 8
 
 #func to display quiz
@@ -115,6 +113,17 @@ def display_quiz(screen, question_data):
 # Define chests with quantum questions & answers  
 #file = fope
 
+def display_end_screen():
+    screen.fill(WHITE)  # Clear screen
+    background = pygame.image.load("endscreen_failed.png")  # Replace with your actual image file
+    background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen.blit(background, (0, 0))
+    pygame.display.update()
+    while True:
+        print("end")
+
+
+    
 
 clock = pygame.time.Clock()
 
@@ -123,7 +132,7 @@ FONT = pygame.font.SysFont('Arial', 24)
 timer_text = FONT.render("240", True, "black")
 timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
 
-start_time = 24000
+start_time = 2400
 
 
 def check_collision(rect, walls):
@@ -226,8 +235,8 @@ while run:
     start_time -= 1
 
     if start_time <= 0:
-        print("Game over!")
-        run = False
+        display_end_screen()
+        
 
     #clock.tick(100)
 
