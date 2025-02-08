@@ -40,7 +40,7 @@ FONT = pygame.font.SysFont('Arial', 24)
 timer_text = FONT.render("240", True, "black")
 timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
 
-start_time = 400
+start_time = 24000
 
 # WHILE game is running:
 run = True
