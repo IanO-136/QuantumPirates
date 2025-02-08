@@ -17,6 +17,13 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GOLD = (255, 215, 0)
 
+#pictures to be used
+#background = pygame.image.load("background.png")  # Replace with your actual image file
+#background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+#correct_img = pygame.image.load("correct.png")  # Image shown when the answer is correct
+#incorrect_img = pygame.image.load("incorrect.png")  # Image for incorrect answers
+
 # Set up game variables (player position, timer, quiz status, chests)  
 player = pygame.Rect((300,250,50,50))
 CHEST_SIZE = 50
@@ -27,9 +34,60 @@ chests = [
     pygame.Rect(700, 500, CHEST_SIZE, CHEST_SIZE)
 ]
 
+walls = [
+    pygame.Rect(0, -50, SCREEN_WIDTH, 50),
+    pygame.Rect(-50, 0, 50, SCREEN_HEIGHT),
+    pygame.Rect(SCREEN_WIDTH, 0, 50, SCREEN_HEIGHT),
+    pygame.Rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, 50),
+]
+
+quiz_questions = [
+    {"question": "What is superposition in quantum computing?", 
+     "options": ["A state of uncertainty", "A pirate maneuver", "A shipwreck"],
+     "answer": "A state of uncertainty"},
+    
+    {"question": "What is the name of the quantum principle that prevents copying qubits?", 
+     "options": ["The No-Clone Theorem", "Schrödinger’s Cat", "Quantum Booty"],
+     "answer": "The No-Clone Theorem"}
+]
+
 # TIMEREVENT = pygame.USEREVENT + 1
 # pygame.time.set_timer(TIMEREVENT, 1000) #1s = 1000 ms
 quiz_stat = 8
+
+#func to display quiz
+def display_quiz(screen, question_data):
+    screen.fill(WHITE)  # Clear screen
+    question_text = FONT.render(question_data["question"], True, "black")
+    screen.blit(question_text, (50, 100))
+
+    button_rects = []
+    y_offset = 200
+    for option in question_data["options"]:
+        button_rect = pygame.Rect(50, y_offset, 300, 50)
+        pygame.draw.rect(screen, (0, 128, 255), button_rect)
+        text = FONT.render(option, True, "white")
+        screen.blit(text, (60, y_offset + 10))
+        button_rects.append((button_rect, option))
+        y_offset += 70
+
+    pygame.display.update()
+    
+    # Wait for user to pick answer
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for button, option in button_rects:
+                    if button.collidepoint(event.pos):
+                        if option == question_data["answer"]:
+                            print("Yarrr! Right on, pirate!")
+                        else:
+                            print("Arrrr, that's incorrect!")
+                            return -1000  # Subtract 10 seconds
+                        return 0  # Correct answer
 
 # Define chests with quantum questions & answers  
 #file = fope
@@ -47,6 +105,8 @@ start_time = 24000
 # WHILE game is running:
 run = True
 quiz_active = False
+current_question = None
+button_rects = []
 
 while run:
     screen.fill(WHITE)
@@ -72,11 +132,10 @@ while run:
 # Handle events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            run = False
 
 
-    # player movement system
-        
+    #player movement
     key = pygame.key.get_pressed()
     #a key is pressed (move to left)
     if key[pygame.K_a] == True:
@@ -98,11 +157,16 @@ while run:
         if player.colliderect(chest):
             print(f"Collided with chest {i+1}! Displaying quiz...")
             chests.pop(i)  # Remove chest after collision
+            current_question = quiz_questions[i % len(quiz_questions)]
+            quiz_active = True
+            button_rects = display_quiz(screen, current_question)
             break  # Prevent iterating over modified list
     # Check for win condition
+
+
     if len(chests) == 0:
         print("Arrr Matey! You found all the treasure!")
-        running = False
+        run = False
 
 #     Show pop-up with a Quantum Computing fact  
 
@@ -127,19 +191,21 @@ while run:
     start_time -= 1
 
     if start_time <= 0:
+        print("Game over!")
         run = False
 
-    clock.tick(100)
+    #clock.tick(100)
 
 
     #loop through each events one by one -- event handler
-    for event in pygame.event.get():
+    #for event in pygame.event.get():
         #exiting game (X at top)
-        if event.type == pygame.QUIT:
-            run = False
+        #if event.type == pygame.QUIT:
+            #run = False
 
     #screen.blit(bg_image, (0, 0))
     pygame.display.update()
+    clock.tick(100)
 
 
 pygame.quit()
