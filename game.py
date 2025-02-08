@@ -16,8 +16,50 @@ pygame.display.set_caption("Pirate's Quantum Treasure")
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GOLD = (255, 215, 0)
+BROWN = (150, 75, 0)
 
-#pictures to be used
+start_time = 24000
+clock = pygame.time.Clock()
+
+#FONT = pygame.font.Font("Copenhagen-z3Z0.ttf")
+FONT = pygame.font.SysFont('Arial', 24)
+timer_text = FONT.render("240", True, "black")
+timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
+
+def show_start_screen():
+    screen.fill(white)
+    draw_text("🏴‍☠️ Pirate's Quantum Treasure 🏴‍☠️", 150, 200, BIG_FONT)
+    draw_text("Press ENTER to Begin!", 250, 300)
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                waiting = False  # Start the game when enter is pressed
+
+# Game Over Screen
+def display_game_over_screen():
+    screen.fill(WHITE)
+    draw_text("💀 Game Over! Time's up! 💀", 200, 250, BIG_FONT)
+    pygame.display.flip()
+    pygame.time.delay(3000)
+    pygame.quit()
+    exit()
+
+# Win Screen
+def display_win_screen():
+    screen.fill(WHITE)
+    draw_text("🏆 Arrr Matey! You found all the treasure! 🏆", 150, 250, BIG_FONT)
+    pygame.display.flip()
+    pygame.time.delay(3000)
+    pygame.quit()
+    exit()
+
+used
 #background = pygame.image.load("background.png")  # Replace with your actual image file
 #background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -27,35 +69,49 @@ GOLD = (255, 215, 0)
 # Set up game variables (player position, timer, quiz status, chests)
 class Player(pygame.sprite.Sprite):
     def __init__(self):
-        super().__init__() 
-        self.image = pygame.image.load("Pirate.png")
-        self.rect = self.image.get_rect()
-        self.rect.center = (160, 520)
+        #pygame.sprite.Sprite.__init__(self)s
+        #self.images = []
+        #for i in range(1, 5):
+            #img = pygame.image.load('Pirate.png')
+            #self.images.append(img)
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Pirate4.png").convert_alpha()  # Load and optimize sprite
+        self.image = pygame.transform.scale(self.image, (50, 50))  # Scale image to smaller size
+        self.rect = self.image.get_rect(center=(300, 250))  # Position player at (300,250)
         
-    def move(self):
-        pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[K_UP]:
-            self.rect.move_ip(0, -5)
-        if pressed_keys[K_DOWN]:
-            self.rect.move_ip(0,5)
-         
-        if self.rect.left > 0:
-              if pressed_keys[K_LEFT]:
-                  self.rect.move_ip(-5, 0)
-        if self.rect.right < SCREEN_WIDTH:        
-              if pressed_keys[K_RIGHT]:
-                  self.rect.move_ip(5, 0)
+    def move(self, dx, dy, walls):
+        if dx or dy:  # Only move if there's an input
+            new_player_rect = self.rect.move(dx * 5, dy * 5)
+            if not check_collision(new_player_rect, walls):
+                self.rect = new_player_rect  # Update position only if no collision
+                return new_player_rect  # Always return the updated rect
+        return self.rect  # If no movement, return the current rect
+
 #player = pygame.Rect((300,250,50,50))
 player = Player()
 
 CHEST_SIZE = 50
-chests = [
+big_chests = [
     pygame.Rect(100, 100, CHEST_SIZE, CHEST_SIZE),
     pygame.Rect(500, 200, CHEST_SIZE, CHEST_SIZE),
     pygame.Rect(300, 400, CHEST_SIZE, CHEST_SIZE),
     pygame.Rect(700, 500, CHEST_SIZE, CHEST_SIZE)
 ]
 
+
+class Chest(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("treasure chest.png").convert_alpha()
+        self.image = pygame.trans
+
+SMALL_CHEST_SIZE = 30
+small_chests = [
+    pygame.Rect(120, 150, SMALL_CHEST_SIZE, SMALL_CHEST_SIZE ),
+    pygame.Rect(600, 180, SMALL_CHEST_SIZE, SMALL_CHEST_SIZE),
+    pygame.Rect(300, 400, SMALL_CHEST_SIZE, SMALL_CHEST_SIZE),
+    pygame.Rect(700, 530, SMALL_CHEST_SIZE, SMALL_CHEST_SIZE)
+]
 
 walls = [
     pygame.Rect(0, -50, SCREEN_WIDTH, 50),
@@ -74,11 +130,20 @@ quiz_questions = [
      "answer": "The No-Clone Theorem"}
 ]
 
+small_chest_facts = [
+    "Quantum superposition is the ability of a quantum system to act as if it is in multiple states at the same time until it is measured. Superposition is a property of all wave functions.",
+    "A qubit, or quantum bit, is the basic unit of information in quantum computing.",
+    "Quantum entanglement connects particles over vast distances instantaneously.",
+    "Quantum computers use probability rather than certainty to make calculations."
+]
 quiz_stat = 8
 
 #func to display quiz
-def display_quiz(screen, question_data):
+def display_quiz(screen, question_data, start_time):
     screen.fill(WHITE)  # Clear screen
+    FONT = pygame.font.SysFont('Arial', 24)
+    #timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
+    timer_text_rect = pygame.Rect(SCREEN_WIDTH-40, SCREEN_HEIGHT-575, 50, 30)
     question_text = FONT.render(question_data["question"], True, "black")
     screen.blit(question_text, (50, 100))
 
@@ -96,6 +161,8 @@ def display_quiz(screen, question_data):
     
     # Wait for user to pick answer
     while True:
+        timer_text = FONT.render(str((int) (start_time/100)), True, "black")
+        screen.blit(timer_text, timer_text_rect)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -107,38 +174,27 @@ def display_quiz(screen, question_data):
                             print("Yarrr! Right on, pirate!")
                         else:
                             print("Arrrr, that's incorrect!")
-                            return -1000  # Subtract 10 seconds
-                        return 0  # Correct answer
+                            return [-1000, start_time]  # Subtract 10 seconds
+                        return [0, start_time]  # Correct answer
+        start_time -= 1
+
+        if start_time <= 0:
+            display_end_screen()
+
+        pygame.display.update()
+            
+        clock.tick(100)
 
 # Define chests with quantum questions & answers  
 #file = fope
 
-def display_end_screen():
-    screen.fill(WHITE)  # Clear screen
-    background = pygame.image.load("endscreen_failed.png")  # Replace with your actual image file
-    background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
-    screen.blit(background, (0, 0))
-    pygame.display.update()
-    while True:
-        print("end")
 
-
-    
-
-clock = pygame.time.Clock()
-
-#FONT = pygame.font.Font("Copenhagen-z3Z0.ttf")
-FONT = pygame.font.SysFont('Arial', 24)
-timer_text = FONT.render("240", True, "black")
-timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
-
-start_time = 2400
 
 
 def check_collision(rect, walls):
     """Checks if the given rectangle collides with any of the walls."""
     for wall in walls:
-        if rect.colliderect(wall):
+        if player.rect.colliderect(chest):
             return True
     return False
 
@@ -147,22 +203,31 @@ run = True
 quiz_active = False
 current_question = None
 button_rects = []
+fact_active = False
 
 while run:
     screen.fill(WHITE)
-    #bg_image = pygame.image.load('Background Info.png')
-    #bg_image = pygame.transform.scale(bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    game_background = pygame.image.load('game_background.png')
+    game_background = pygame.transform.scale(game_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen.blit(game_background, (0, 0))
+    pygame.display.update()
+
 
     timer_text = FONT.render(str((int) (start_time/100)), True, "black")
     screen.blit(timer_text, timer_text_rect)
 #     Clear screen and draw background  
-#     Draw player at current position  
-    pygame.draw.rect(screen, (255, 0, 0), player)
+#     Draw player at current position
+    screen.blit(player.image, player.rect)
+    #pygame.draw.rect(screen, (255, 0, 0), player)
 
 
 #     Draw chests on the map  
-    for chest in chests:
+    for chest in big_chests:
         pygame.draw.rect(screen, GOLD, chest)
+
+#       Draw small chests
+    for chest in small_chests:
+        pygame.draw.rect(screen, BROWN, chest)
 #     Check for user input (WASD for movement)  
 #     Check if player is interacting with a chest  
 #     Update the timer  
@@ -188,27 +253,38 @@ while run:
         move_y = 1
 
     # Create a new rectangle for the player’s potential new position
-    new_player_rect = player.move(move_x, move_y)
+    new_player_rect = player.move(move_x, move_y, walls)
 
     # Check if the new position collides with any walls
     if not check_collision(new_player_rect, walls):
         # If no collision, update the player's position
-        player.move_ip(move_x, move_y)
+        #player.move_ip(move_x, move_y)
+        player.move(move_x, move_y, walls)
 
 # Ensure player stays within map boundaries
     # IF player collides with a chest:
-    for i, chest in enumerate(chests):
-        if player.colliderect(chest):
+    for i, chest in enumerate(big_chests[:]):
+        if player.rect.colliderect(chest):
             print(f"Collided with chest {i+1}! Displaying quiz...")
-            chests.pop(i)  # Remove chest after collision
+            big_chests.pop(i)  # Remove chest after collision
             current_question = quiz_questions[i % len(quiz_questions)]
             quiz_active = True
-            button_rects = display_quiz(screen, current_question)
-            break  # Prevent iterating over modified list
-    # Check for win condition
+            button_array = display_quiz(screen, current_question, start_time)
+            button_rects = button_array[0]
+            start_time = button_array[1] + button_array[0]
+            break  # Prevent iterating over modified listxs
+        # Check for win condition
 
+        # Check collisions with small chests (Show Fact)
+        if not fact_active:
+            for i, chest in enumerate(small_chests[:]):
+                if player.rect.colliderect(chest):
+                    fact_text = small_chest_facts[i]
+                    fact_active = True
+                    small_chests.pop(i)  # Remove small chest after reading fact
+                    break
 
-    if len(chests) == 0:
+    if len(big_chests) == 0 and not quiz_active:
         print("Arrr Matey! You found all the treasure!")
         run = False
 
@@ -228,14 +304,14 @@ while run:
 
 
 # win condition
-# IF user collects all code letters:
+
 #     Show success message "Arrr Matey! You found the treasure!"  
 #     End game 
 
     start_time -= 1
 
     if start_time <= 0:
-        display_end_screen()
+        display_win_screen()
         
 
     #clock.tick(100)
