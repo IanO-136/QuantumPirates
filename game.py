@@ -20,19 +20,24 @@ GOLD = (255, 215, 0)
 # Set up game variables (player position, timer, quiz status, chests)  
 player = pygame.Rect((300,250,50,50))
 
-quiz_stat = 8
+CHEST_SIZE = 50
 chests = [
-    pygame.Rect(300,250,50,50),
-    pygame.Rect(300,250,50,50),
-    pygame.Rect(300,250,50,50),
-    pygame.Rect(300,250,50,50)
-    ]
+    pygame.Rect(100, 100, CHEST_SIZE, CHEST_SIZE),
+    pygame.Rect(500, 200, CHEST_SIZE, CHEST_SIZE),
+    pygame.Rect(300, 400, CHEST_SIZE, CHEST_SIZE),
+    pygame.Rect(700, 500, CHEST_SIZE, CHEST_SIZE)
+]
+
 walls = [
     pygame.Rect(0, -50, SCREEN_WIDTH, 50),
     pygame.Rect(-50, 0, 50, SCREEN_HEIGHT),
     pygame.Rect(SCREEN_WIDTH, 0, 50, SCREEN_HEIGHT),
     pygame.Rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, 50),
 ]
+
+# TIMEREVENT = pygame.USEREVENT + 1
+# pygame.time.set_timer(TIMEREVENT, 1000) #1s = 1000 ms
+quiz_stat = 8
 
 # Define chests with quantum questions & answers  
 #file = fope
@@ -80,10 +85,14 @@ while run:
 #     Check win/loss conditions  
 #     Refresh the screen  
 
+# Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
 
-# player movement system
-    
+    # player movement system
+        
     key = pygame.key.get_pressed()
     move_x, move_y = 0, 0
     if key[pygame.K_a]:  # Move left
@@ -104,9 +113,16 @@ while run:
         player.move_ip(move_x, move_y)
 
 # Ensure player stays within map boundaries
-
-
-# IF player collides with a chest:
+    # IF player collides with a chest:
+    for i, chest in enumerate(chests):
+        if player.colliderect(chest):
+            print(f"Collided with chest {i+1}! Displaying quiz...")
+            chests.pop(i)  # Remove chest after collision
+            break  # Prevent iterating over modified list
+    # Check for win condition
+    if len(chests) == 0:
+        print("Arrr Matey! You found all the treasure!")
+        running = False
 
 #     Show pop-up with a Quantum Computing fact  
 #     Display multiple-choice question (or textbox for input)  
