@@ -1,6 +1,7 @@
 from tkinter.font import Font
 import pygame
 from pygame.locals import *
+import time
 
 #initialize pygame elements
 pygame.init()
@@ -32,11 +33,14 @@ chests = [
 #file = fope
 
 
-CLOCK = pygame.time.Clock()
+clock = pygame.time.Clock()
 
-FONT = pygame.font.Font("Copenhagen-z3Z0.ttf")
-timer_text = FONT.render("4:00", True, "black")
-timer_text_rect = timer_text.get_rect(timerPos=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
+#FONT = pygame.font.Font("Copenhagen-z3Z0.ttf")
+FONT = pygame.font.SysFont('Arial', 24)
+timer_text = FONT.render("240", True, "black")
+timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
+
+start_time = 400
 
 # WHILE game is running:
 run = True
@@ -47,6 +51,8 @@ while run:
     #bg_image = pygame.image.load('Background Info.png')
     #bg_image = pygame.transform.scale(bg_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
+    timer_text = FONT.render(str((int) (start_time/100)), True, "black")
+    screen.blit(timer_text, timer_text_rect)
 #     Clear screen and draw background  
 #     Draw player at current position  
     pygame.draw.rect(screen, (255, 0, 0), player)
@@ -99,6 +105,13 @@ while run:
 # IF user collects all code letters:
 #     Show success message "Arrr Matey! You found the treasure!"  
 #     End game 
+
+    start_time -= 1
+
+    if start_time <= 0:
+        run = False
+
+    clock.tick(100)
 
 
     #loop through each events one by one -- event handler
