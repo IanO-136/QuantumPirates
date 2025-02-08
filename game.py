@@ -19,8 +19,7 @@ GOLD = (255, 215, 0)
 
 # Set up game variables (player position, timer, quiz status, chests)  
 player = pygame.Rect((300,250,50,50))
-# TIMEREVENT = pygame.USEREVENT + 1
-# pygame.time.set_timer(TIMEREVENT, 1000) #1s = 1000 ms
+
 quiz_stat = 8
 chests = [
     pygame.Rect(300,250,50,50),
@@ -28,6 +27,12 @@ chests = [
     pygame.Rect(300,250,50,50),
     pygame.Rect(300,250,50,50)
     ]
+walls = [
+    pygame.Rect(0, -50, SCREEN_WIDTH, 50),
+    pygame.Rect(-50, 0, 50, SCREEN_HEIGHT),
+    pygame.Rect(SCREEN_WIDTH, 0, 50, SCREEN_HEIGHT),
+    pygame.Rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, 50),
+]
 
 # Define chests with quantum questions & answers  
 #file = fope
@@ -41,6 +46,14 @@ timer_text = FONT.render("240", True, "black")
 timer_text_rect = timer_text.get_rect(center=(SCREEN_WIDTH-40, SCREEN_HEIGHT-575))
 
 start_time = 24000
+
+
+def check_collision(rect, walls):
+    """Checks if the given rectangle collides with any of the walls."""
+    for wall in walls:
+        if rect.colliderect(wall):
+            return True
+    return False
 
 # WHILE game is running:
 run = True
@@ -72,18 +85,24 @@ while run:
 # player movement system
     
     key = pygame.key.get_pressed()
-    #a key is pressed (move to left)
-    if key[pygame.K_a] == True:
-        player.move_ip(-1, 0)
-    #d key is pressed (move to right)
-    elif key[pygame.K_d] == True:
-        player.move_ip(1, 0)
-    #w is pressed (move up)
-    elif key[pygame.K_w] == True:
-        player.move_ip(0, -1)
-    #s is pressed (move down)
-    elif key[pygame.K_s] == True:
-        player.move_ip(0, 1)
+    move_x, move_y = 0, 0
+    if key[pygame.K_a]:  # Move left
+        move_x = -1
+    elif key[pygame.K_d]:  # Move right
+        move_x = 1
+    elif key[pygame.K_w]:  # Move up
+        move_y = -1
+    elif key[pygame.K_s]:  # Move down
+        move_y = 1
+
+    # Create a new rectangle for the player’s potential new position
+    new_player_rect = player.move(move_x, move_y)
+
+    # Check if the new position collides with any walls
+    if not check_collision(new_player_rect, walls):
+        # If no collision, update the player's position
+        player.move_ip(move_x, move_y)
+
 # Ensure player stays within map boundaries
 
 
